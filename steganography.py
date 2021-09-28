@@ -200,6 +200,14 @@ def psnr(cover : str, stego : str) -> float:
     return 20 * log(255/rms, 10)
 
 
+def audiopsnr(cover : str, stego : str) -> float:
+    wav1 = wave.open(cover, mode="rb")
+    buf1 = np.array(list(wav1.readframes(wav1.getnframes())))
+    wav2 = wave.open(stego, mode="rb")
+    buf2 = np.array(list(wav2.readframes(wav2.getnframes())))
+    rms  = np.mean((buf1-buf2)**2)
+    return 20 * log(255/rms, 10)
+
 
 # r = StegWAV("other/grav.wav", "hoho.wav")
 # r.encode("haehaehae")
