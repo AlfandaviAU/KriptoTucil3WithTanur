@@ -1,40 +1,44 @@
 import PIL.Image
 from math import log
 import numpy as np
+import wave
 
-class PureStegImage:
-    def __init__(self, input : str, output : str):
-        self.srcImage       = PIL.Image.open(input)
-        self.srcPixels      = self.srcImage.load()
-        self.outputName     = output
-        self.pixelCount     = self.srcImage.size[0] * self.srcImage.size[1]
-        self.maxPayloadSize = self.pixelCount * 3 // 8
+class Steg:
+    def __init__(self):
+        pass
 
     def payloadToStegBinary(self, payload : str) -> str:
         result = ""
         for c in payload:
             result += bin(ord(c))[2:].zfill(8)
-
-        # Padding
-        while len(result) % 3 != 0:
-            result += "0"
         return result
 
-    def lcg(self, a : int, b: int, m : int):
+    def lcg(self, a : int, b: int, m : int, n : int):
         i = 0
         if m is None:
-            i = 3
+            i = n
             while True:
                 yield (a*i + b)
                 i += 1
         else:
             while True:
                 nextgen = (a*i + b) % m
-                while nextgen in [0, 1, 2]:
+                # 3 pixel / 8 bits audio pertama reserved sebagai header
+                while nextgen in [i for i in range(n)]:
                     i += 1
                     nextgen = (a*i + b) % m
                 yield nextgen
                 i += 1
+
+
+
+class StegPNG(Steg):
+    def __init__(self, input : str, output : str):
+        self.srcImage       = PIL.Image.open(input)
+        self.srcPixels      = self.srcImage.load()
+        self.outputName     = output
+        self.pixelCount     = self.srcImage.size[0] * self.srcImage.size[1]
+        self.maxPayloadSize = self.pixelCount * 3 // 8
 
     def encode(self, payload : str, key : str = None) -> bool:
         if self.maxPayloadSize < len(payload):
@@ -52,8 +56,11 @@ class PureStegImage:
 
         # Payload processing
         stegpayload = self.payloadToStegBinary(payload)
+        # Padding
+        while len(stegpayload) % 3 != 0:
+            stegpayload += "0"
         if key is None:
-            indexgenerator = self.lcg(1, 0, None)
+            indexgenerator = self.lcg(1, 0, None, 3)
             stegheader    = "001000000"
         else:
             # 3 bit for a, 6 bit for b
@@ -61,7 +68,7 @@ class PureStegImage:
             b = sum([ord(c) for c in key]) % 64
             if b == 0:
                 b = 1
-            indexgenerator = self.lcg(a, b, self.pixelCount)
+            indexgenerator = self.lcg(a, b, self.pixelCount, 3)
             stegheader     = bin(a)[2:].zfill(3) + bin(b)[2:].zfill(6)
 
         # Insertion
@@ -96,7 +103,7 @@ class PureStegImage:
         b = int("0b" + stegheader[3:9], 2)
 
         iter = 0
-        for i in self.lcg(a, b, self.pixelCount):
+        for i in self.lcg(a, b, self.pixelCount, 3):
             if iter > self.pixelCount - 3:
                 break
             x = i %  self.srcImage.size[0]
@@ -104,6 +111,73 @@ class PureStegImage:
             resultbin += str(self.srcPixels[x, y][0] & 0x1)
             resultbin += str(self.srcPixels[x, y][1] & 0x1)
             resultbin += str(self.srcPixels[x, y][2] & 0x1)
+            iter += 1
+
+        resultpayload = []
+        for i in range(0, len(resultbin), 8):
+            binstr = resultbin[i:i+8]
+            if len(binstr) < 8:
+                binstr = binstr.ljust(8, "0")
+
+            binstr = "0b" + binstr
+            resultpayload.append(int(binstr, 2))
+
+        with open(self.outputName, "wb") as file:
+            file.write(bytearray(resultpayload))
+
+
+
+class StegWAV(Steg):
+    def __init__(self, input : str, output : str):
+        self.srcAudio   = wave.open(input, mode="rb")
+        self.frameBytes = bytearray(list(self.srcAudio.readframes(self.srcAudio.getnframes())))
+        self.outputName = output
+
+    def encode(self, payload : str, key : str = None) -> bool:
+        stegpayload = self.payloadToStegBinary(payload)
+        if key is None:
+            indexgenerator = self.lcg(1, 0, None, 8)
+            stegheader    = "01000000"
+        else:
+            # 2 bit for a, 6 bit for b
+            a = ord(key[0]) % 4
+            b = sum([ord(c) for c in key]) % 64
+            if b == 0:
+                b = 1
+            indexgenerator = self.lcg(a, b, len(self.frameBytes), 8)
+            stegheader     = bin(a)[2:].zfill(2) + bin(b)[2:].zfill(6)
+
+        # Header insertion
+        for i in range(len(self.frameBytes)):
+            if i < 8:
+                self.frameBytes[i] = (self.frameBytes[i] & 0xFE) | int(stegheader[i])
+            else:
+                self.frameBytes[i] = self.frameBytes[i] & 0xFE
+
+        # Payload insertion
+        wav_idx = next(indexgenerator)
+        for i in range(len(stegpayload)):
+            self.frameBytes[wav_idx] |= int(stegpayload[i])
+            wav_idx = next(indexgenerator)
+
+        # Output
+        resultpayload = bytes(self.frameBytes)
+        with wave.open(self.outputName, "wb") as file:
+            file.setparams(self.srcAudio.getparams())
+            file.writeframes(resultpayload)
+        return True
+
+    def decode(self):
+        stegheader = "".join([str(self.frameBytes[i] & 1) for i in range(8)])
+        a = int("0b" + stegheader[0:2], 2)
+        b = int("0b" + stegheader[2:8], 2)
+
+        resultbin = ""
+        iter = 0
+        for i in self.lcg(a, b, len(self.frameBytes), 8):
+            if iter > len(self.frameBytes) - 8:
+                break
+            resultbin += str(self.frameBytes[i] & 0x1)
             iter += 1
 
         resultpayload = []
@@ -127,10 +201,15 @@ def psnr(cover : str, stego : str) -> float:
 
 
 
+# r = StegWAV("other/grav.wav", "hoho.wav")
+# r.encode("haehaehae")
+#
+# w = StegWAV("hoho.wav", "q.txt")
+# w.decode()
 
-# q = PureStegImage("other/eve.png", "hehe.png")
+# q = StegPNG("other/eve.png", "hehe.png")
 # q.encode("hehe", "uwu")
 #
 # #
-# p = PureStegImage("hehe.png", "uwu.txt")
+# p = StegPNG("hehe.png", "uwu.txt")
 # p.decode()
