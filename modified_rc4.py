@@ -1,6 +1,6 @@
 # TBA : Modifikasi RC4
 
-def mod_rc4(srctext : "byte", key : str, encrypt : bool = True) -> "byte":
+def mod_rc4(srctext : str, key : str, encrypt : bool = True) -> str:
     # KSA
     listS = [i for i in range(256)]
     j = 0
