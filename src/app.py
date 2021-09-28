@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 from forms import Todo
+from steganography import *
+from modified_rc4 import *
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'password'
 
@@ -20,6 +23,12 @@ def page_rc4():
 def page_stegano():
     request_method = request.method
     return render_template('stegano.html',request_method=request_method)
+
+# @app.route('/process_stegano', methods=['GET', 'POST'])
+# def process_stegano():
+#     r = 
+# rapaham su
+
 
 # @app.route('/name/<string:first_name>')
 # def name(first_name):
