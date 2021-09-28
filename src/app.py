@@ -24,10 +24,11 @@ def page_stegano():
     request_method = request.method
     return render_template('stegano.html',request_method=request_method)
 
-# @app.route('/process_stegano', methods=['GET', 'POST'])
-# def process_stegano():
-#     r = 
-# rapaham su
+@app.route('/process_stegano', methods=['GET', 'POST'])
+def process_stegano():
+    request_method = request.method
+    return render_template('stegano.html',request_method=request_method)
+
 
 
 # @app.route('/name/<string:first_name>')
