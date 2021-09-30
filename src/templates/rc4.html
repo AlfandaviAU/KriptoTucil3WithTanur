@@ -24,14 +24,22 @@
                                 <div class="left-text">
                                   <h4>Modified RC4</h4>
                                   <p>Silahkan pilih aksi yang akan dilakukan</p>
-                                  <form action="/action_page.php">
-                                    <label for="fname">First name:</label><br>
-                                    <input type="text" id="fname" name="fname" value="John"><br>
-                                    <label for="lname">Last name:</label><br>
-                                    <input type="text" id="lname" name="lname" value="Doe"><br><br>
-                                    <input type="submit" value="Submit">
+                                  <form method="POST" action="#" class="form-diy">
+                                    <div class="form-diy" style="font-size: 15px;line-height: 30px;font-weight: 300;color: #afafaf;">
+                                      <label for="file">Chose file to upload</label><br>
+                                        <input type="file" id="file" name="file"><br>
+                                      <label for="message">Or input message to process</label><br>
+                                      <input type="text" id="message" name="message"><br>
+
+                                      <label for="key">Key</label><br>
+                                      <input type="text" id="key" name="key"><br>
+                                      <div class="buttonasu" style="padding-top: 20px">
+                                        <input type="submit" value="encrypt">
+                                        <input type="submit" value="decrypt">
+                                      </div>
+                                    </div>
                                   </form> 
-                                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sedr do eiusmod deis tempor incididunt.</p>
+                                  <p class="result-rc4">Hasil akan ditampilkan disini</p>
                                 </div>
                               </div>
                               <div class="col-lg-6 align-self-center">
