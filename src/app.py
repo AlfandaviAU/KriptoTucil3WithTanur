@@ -22,6 +22,8 @@ def page_rc4():
 @app.route('/stegano', methods=['GET', 'POST'])
 def page_stegano():
     request_method = request.method
+    print(request.form)
+    print(request.files)
     return render_template('stegano.html',request_method=request_method)
 
 @app.route('/process_stegano', methods=['GET', 'POST'])
@@ -43,4 +45,3 @@ def process_stegano():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
