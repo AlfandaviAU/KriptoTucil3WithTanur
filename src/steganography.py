@@ -9,11 +9,18 @@ class Steg:
 
     def payloadToStegBinary(self, payload : str) -> str:
         result = ""
-        for c in payload:
-            result += bin(ord(c))[2:].zfill(8)
+        if type(payload[0]) == str:
+            for c in payload:
+                result += bin(ord(c))[2:].zfill(8)
+        else:
+            for c in payload:
+                result += bin(c)[2:].zfill(8)
         return result
 
     def lcg(self, a : int, b: int, m : int, n : int):
+        if a == 0 and b == 0:
+            raise Exception("Invalid Value")
+
         i = 0
         if m is None:
             i = n
@@ -33,7 +40,7 @@ class Steg:
 
 
 class StegPNG(Steg):
-    def __init__(self, input : str, output : str):
+    def __init__(self, input : "str/fp", output : str):
         self.srcImage       = PIL.Image.open(input)
         self.srcPixels      = self.srcImage.load()
         self.outputName     = output
@@ -128,7 +135,7 @@ class StegPNG(Steg):
 
 
 class StegWAV(Steg):
-    def __init__(self, input : str, output : str):
+    def __init__(self, input : "str/fp", output : str):
         self.srcAudio   = wave.open(input, mode="rb")
         self.frameBytes = bytearray(list(self.srcAudio.readframes(self.srcAudio.getnframes())))
         self.outputName = output
@@ -215,8 +222,8 @@ def audiopsnr(cover : str, stego : str) -> float:
 # w = StegWAV("hoho.wav", "q.txt")
 # w.decode()
 
-# q = StegPNG("other/eve.png", "hehe.png")
-# q.encode("hehe", "uwu")
+# q = StegPNG("../other/eve.png", "hehe.png")
+# q.encode("hehe")
 #
 # #
 # p = StegPNG("hehe.png", "uwu.txt")
