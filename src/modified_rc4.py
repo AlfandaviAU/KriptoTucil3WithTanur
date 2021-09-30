@@ -35,7 +35,7 @@ def mod_rc4(srctext : str, key : str) -> str:
             indexToSwap = (351 - int((i*836 + 487)//47)) % 256
         j = (j + listS[indexToSwap] + ord(key[indexToSwap % len(key)])) % 256
         listS[i], listS[j] = listS[j], listS[i]
-    
+
     # KSA EDIT 4
     for i in range(256):
         if (i%4 == 0):
@@ -66,7 +66,7 @@ def mod_rc4(srctext : str, key : str) -> str:
         newelement = (newelement ^ listS[newelement]) % 256
         j = ((j+listS[i]) ^ (ord(key[i % len(key)])+newelement)) % 256
         listS[i], listS[j] = listS[j], listS[i]
-    
+
     # KSA EDIT 6
     pseudoRandomNum = [917, 5989, 7639, 6809]
     newelement = 0
@@ -78,7 +78,7 @@ def mod_rc4(srctext : str, key : str) -> str:
         newelement = (newelement ^ listS[newelement] + listS[i]) % 256
         j = ((j+listS[i]) ^ (ord(key[i % len(key)])+newelement)) % 256
         listS[i], listS[j] = listS[j], listS[i]
-    
+
     # PRGA
     i = 0
     j = 0
@@ -100,7 +100,11 @@ def mod_rc4(srctext : str, key : str) -> str:
         elif (i%5 == 4):
             t = (7433 - int((i*8853 + 2919)//313)) % 256
         u = listS[t ^ listS[i]]
-        resulttext += chr(u ^ ord(srctext[k]))
+
+        if type(srctext[k]) == int:
+            resulttext += chr(u ^ srctext[k])
+        else:
+            resulttext += chr(u ^ ord(srctext[k]))
 
     return resulttext
 

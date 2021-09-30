@@ -22,7 +22,19 @@ def main():
 @app.route('/rc4', methods=['GET', 'POST'])
 def page_rc4():
     request_method = request.method
-    return render_template('rc4.html',request_method=request_method)
+    if len(request.form) == 0:
+        result = ""
+    else:
+        if len(request.files.get("srcfile").filename) != 0:
+            srctext = request.files.get("srcfile").read()
+        else:
+            srctext = request.form.get("message")
+
+        rckey   = request.form.get("key")
+        if len(rckey) > 0:
+            result  = mod_rc4(srctext, rckey)
+
+    return render_template('rc4.html',request_method=request_method, result=result)
 
 
 @app.route('/stegano', methods=['GET', 'POST'])
