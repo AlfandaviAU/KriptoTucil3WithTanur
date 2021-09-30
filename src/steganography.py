@@ -21,21 +21,26 @@ class Steg:
         if a == 0 and b == 0:
             raise Exception("Invalid Value")
 
-        i = 0
         if m is None:
             i = n
             while True:
                 yield (a*i + b)
                 i += 1
         else:
-            while True:
-                nextgen = (a*i + b) % m
-                # 3 pixel / 8 bits audio pertama reserved sebagai header
-                while nextgen in [i for i in range(n)]:
-                    i += 1
-                    nextgen = (a*i + b) % m
-                yield nextgen
-                i += 1
+            # 3 pixel / 8 bits audio pertama reserved sebagai header
+            available = [j for j in range(n, m-1)]
+
+            # Swap
+            ln = len(available)
+            for i in range(0, b << 4, 2):
+                g1 = (a*i + b) % ln
+                g2 = (ln - a - b*(i+1)) % ln
+                available[g1], available[g2] = available[g1], available[g2]
+
+            a_idx = 0
+            while True and a_idx < len(available):
+                yield available[a_idx]
+                a_idx += 1
 
 
 
@@ -110,8 +115,13 @@ class StegPNG(Steg):
         b = int("0b" + stegheader[3:9], 2)
 
         iter = 0
-        for i in self.lcg(a, b, self.pixelCount, 3):
-            if iter > self.pixelCount - 3:
+        if stegheader != "001000000":
+            indexgenerator = self.lcg(a, b, self.pixelCount, 3)
+        else:
+            indexgenerator = self.lcg(a, b, None, 3)
+
+        for i in indexgenerator:
+            if iter > self.pixelCount - 3 - 1:
                 break
             x = i %  self.srcImage.size[0]
             y = i // self.srcImage.size[0]
@@ -181,7 +191,12 @@ class StegWAV(Steg):
 
         resultbin = ""
         iter = 0
-        for i in self.lcg(a, b, len(self.frameBytes), 8):
+        if stegheader != "01000000":
+            indexgenerator = self.lcg(a, b, len(self.frameBytes), 8)
+        else:
+            indexgenerator = self.lcg(a, b, None, 8)
+
+        for i in indexgenerator:
             if iter > len(self.frameBytes) - 8:
                 break
             resultbin += str(self.frameBytes[i] & 0x1)
