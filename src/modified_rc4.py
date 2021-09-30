@@ -50,17 +50,56 @@ def mod_rc4(srctext : str, key : str) -> str:
         j = (j + listS[indexToSwap] + ord(key[indexToSwap % len(key)])) % 256
         listS[i], listS[j] = listS[j], listS[i]
 
-
+    # KSA EDIT 5
+    newelement = 0
+    for i in range(256):
+        if (i%5 == 0):
+            newelement = int(i/5) % 256
+        elif (i%5 == 1):
+            newelement = (256 - int((i*578 + 274)//37)) % 256
+        elif (i%5 == 2):
+            newelement = (6652 - int((i*1575 + 9548)//318)) % 256
+        elif (i%5 == 3):
+            newelement = (9833 - int((i*8852 + 2318)//271)) % 256
+        elif (i%5 == 4):
+            newelement = (7431 - int((i*6651 + 2911)//213)) % 256
+        newelement = (newelement ^ listS[newelement]) % 256
+        j = ((j+listS[i]) ^ (ord(key[i % len(key)])+newelement)) % 256
+        listS[i], listS[j] = listS[j], listS[i]
+    
+    # KSA EDIT 6
+    pseudoRandomNum = [917, 5989, 7639, 6809]
+    newelement = 0
+    for i in range(256):
+        if (i%2 == 0):
+            newelement = (pseudoRandomNum[i%4] * int(pseudoRandomNum[i%4]//317) + pseudoRandomNum[i%4]) % 256
+        elif (i%2 == 1):
+            newelement = (pseudoRandomNum[i%4] * int(pseudoRandomNum[i%4]//269) + pseudoRandomNum[i%4]) % 256
+        newelement = (newelement ^ listS[newelement] + listS[i]) % 256
+        j = ((j+listS[i]) ^ (ord(key[i % len(key)])+newelement)) % 256
+        listS[i], listS[j] = listS[j], listS[i]
+    
     # PRGA
     i = 0
     j = 0
     resulttext = ""
     for k in range(len(srctext)):
-        i = (i + 1) % 256
-        j = (j + listS[i]) % 256
+
+        # PRGA EDIT 1
+        i = int((i*1575 + 9548)//318) % 256
+        j = (j + listS[i] ^ i) % 256
         listS[i], listS[j] = listS[j], listS[i]
-        t = (listS[i] + listS[j]) % 256
-        u = listS[t]
+        if (i%5 == 0):
+            t = (listS[i] + listS[j]) % 256
+        elif (i%5 == 1):
+            t = (256 - int((i*739 + 279)//37)) % 256
+        elif (i%5 == 2):
+            t = (6657 - int((i*1379 + 9548)//374)) % 256
+        elif (i%5 == 3):
+            t = (9839 - int((i*6657 + 2317)//279)) % 256
+        elif (i%5 == 4):
+            t = (7433 - int((i*8853 + 2919)//313)) % 256
+        u = listS[t ^ listS[i]]
         resulttext += chr(u ^ ord(srctext[k]))
 
     return resulttext
