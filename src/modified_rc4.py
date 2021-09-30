@@ -66,9 +66,9 @@ def mod_rc4(srctext : str, key : str) -> str:
     return resulttext
 
 
-a = input("pteks\n")
-b = input("key\n")
-c = mod_rc4(a,b)
-print(c)
-d = mod_rc4(c,b)
-print(d)
+# a = input("pteks\n")
+# b = input("key\n")
+# c = mod_rc4(a,b)
+# print(c)
+# d = mod_rc4(c,b)
+# print(d)

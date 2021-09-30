@@ -26,6 +26,13 @@ def page_stegano():
     print(request.files)
     return render_template('stegano.html',request_method=request_method)
 
+@app.route('/fidelity', methods=['GET', 'POST'])
+def page_fidelity():
+    request_method = request.method
+    print(request.form)
+    print(request.files)
+    return render_template('fidelity.html',request_method=request_method)
+
 @app.route('/process_stegano', methods=['GET', 'POST'])
 def process_stegano():
     request_method = request.method
