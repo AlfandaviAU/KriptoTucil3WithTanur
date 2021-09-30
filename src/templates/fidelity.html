@@ -15,28 +15,32 @@
             <div class="grid">
               <div class="row">
                 <div class="col-lg-12">
-                  <ul class="nacc">   
+                  <ul class="nacc">
                     <li class="active">
                         <div>
                           <div class="thumb">
                             <div class="row">
                               <div class="col-lg-6 align-self-center">
                                 <div class="left-text">
-                                  <h4>Fidelity Check</h4>
-                                  <p>Silahkan pilih aksi yang akan dilakukan</p>
-                                  <form method="POST" action="#" class="form-diy">
+                                  <h4>Fidelity Calculation</h4>
+                                  <form method="POST" action="#" class="form-diy" enctype="multipart/form-data">
                                     <div class="form-diy" style="font-size: 15px;line-height: 30px;font-weight: 300;color: #afafaf;">
-                                        <label for="file">Chose file to upload</label><br>
-                                        <input type="file" id="file" name="file"><br>
-                                        <label for="file">Chose file to upload</label><br>
-                                        <input type="file" id="file" name="file"><br>
-                                        
+                                        <label for="file">Cover file</label><br>
+                                        <input type="file" id="file" name="cover"><br><br>
+                                        <label for="file">Stego object</label><br>
+                                        <input type="file" id="file" name="stego"><br>
+
                                       <div class="buttonasu" style="padding-top: 20px">
-                                        <input type="submit" value="check">
+                                        <input type="submit" value="Calculate">
                                       </div>
                                     </div>
-                                  </form> 
-                                  <p class="result-rc4">Hasil akan ditampilkan disini</p>
+                                  </form>
+                                  <div>
+                                      {% if fidelity is not none %}
+                                      <br><br><h4>Hasil</h4>
+                                      {{fidelity}} dB
+                                      {% endif %}
+                                  </div>
                                 </div>
                               </div>
                               <div class="col-lg-6 align-self-center">
@@ -47,7 +51,7 @@
                             </div>
                           </div>
                         </div>
-                    </li>           
+                    </li>
                   </ul>
                 </div>
               </div>

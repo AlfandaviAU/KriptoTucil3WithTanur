@@ -36,12 +36,26 @@ def page_rc4():
 
     return render_template('rc4.html',request_method=request_method, result=result)
 
-
 @app.route('/stegano', methods=['GET', 'POST'])
 def page_stegano():
     request_method = request.method
-
     return render_template('stegano.html',request_method=request_method)
+
+@app.route('/fidelity', methods=['GET', 'POST'])
+def page_fidelity():
+    request_method = request.method
+    fidelity       = None
+
+    if len(request.files) > 0:
+        cover = request.files.get("cover")
+        stego = request.files.get("stego")
+
+        if cover.filename.split(".")[1] == "png":
+            fidelity = psnr(cover, stego)
+        elif cover.filename.split(".")[1] == "wav":
+            fidelity = audiopsnr(cover, stego)
+
+    return render_template('fidelity.html',request_method=request_method, fidelity=fidelity)
 
 
 
@@ -56,17 +70,19 @@ def encode_stegano():
     else:
         stegoKey = request.form.get("key")
 
+    embedfilestream = request.files.get("embed-file")
+    embeddedmsg     = embedfilestream.read()
+
     stegoEnc = request.form.get("metode-steg")
-    print(stegoEnc)
-    # TODO : Enkripsi RC4
+    if stegoEnc == "with-enc" and len(stegoKey) > 0:
+        embeddedmsg = mod_rc4(embeddedmsg, stegoKey)
 
     if srcfilename.split(".")[1] == "png":
         stegEncoder = StegPNG(filestream, outputfile)
     elif srcfilename.split(".")[1] == "wav":
         stegEncoder = StegWAV(filestream, outputfile)
 
-    embedfilestream = request.files.get("embed-file")
-    stegEncoder.encode(embedfilestream.read(), stegoKey)
+    stegEncoder.encode(embeddedmsg, stegoKey)
 
     return redirect('/stegano')
 
