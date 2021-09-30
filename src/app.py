@@ -27,12 +27,17 @@ def page_rc4():
     else:
         if len(request.files.get("srcfile").filename) != 0:
             srctext = request.files.get("srcfile").read()
+            outputfile = "output/rc4-" + request.files.get("srcfile").filename
         else:
             srctext = request.form.get("message")
+            outputfile = "output/rc4-manual"
 
         rckey   = request.form.get("key")
         if len(rckey) > 0:
             result  = mod_rc4(srctext, rckey)
+
+        with open(outputfile, "w") as file:
+            file.write(result)
 
     return render_template('rc4.html',request_method=request_method, result=result)
 

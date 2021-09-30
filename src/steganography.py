@@ -35,7 +35,7 @@ class Steg:
             for i in range(0, b << 4, 2):
                 g1 = (a*i + b) % ln
                 g2 = (ln - a - b*(i+1)) % ln
-                available[g1], available[g2] = available[g1], available[g2]
+                available[g1], available[g2] = available[g2], available[g1]
 
             a_idx = 0
             while True and a_idx < len(available):
